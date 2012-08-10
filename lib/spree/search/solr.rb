@@ -26,15 +26,10 @@ module Spree::Search
       end
 
       # Solr query parameters: http://wiki.apache.org/solr/CommonQueryParameters
-
-      if query.blank?
-        full_query = ""
-      else
-        full_query = query + " AND "
-      end
-
-      full_query += "is_active:(true)"
-
+      # Adding the keyword portions sctrictly if there is a word-character match
+      keyword_query = query and query.match(/\w/) and "#{query} AND "
+      full_query = "#{keyword_query}is_active:(true)"
+      
       if taxon 
         taxons_query = taxon.self_and_descendants.map{|t| "taxon_ids:(#{t.id})"}.join(" OR ")
         full_query += " AND (#{taxons_query})"
