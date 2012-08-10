@@ -26,7 +26,15 @@ module Spree::Search
       end
 
       # Solr query parameters: http://wiki.apache.org/solr/CommonQueryParameters
-      full_query = query + " AND is_active:(true)"
+
+      if query.blank?
+        full_query = ""
+      else
+        full_query = query + " AND "
+      end
+
+      full_query += "is_active:(true)"
+
       if taxon 
         taxons_query = taxon.self_and_descendants.map{|t| "taxon_ids:(#{t.id})"}.join(" OR ")
         full_query += " AND (#{taxons_query})"
