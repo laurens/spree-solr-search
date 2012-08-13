@@ -38,25 +38,30 @@ module Spree::Search
       full_query += " AND store_ids:(#{@properties[:current_store_id]})" if @properties[:current_store_id]
 
       # Rails.logger.info "Solr Query: #{full_query}\nOptions: #{search_options}"
-
-      result = Spree::Product.find_by_solr(full_query, search_options)
-
-      products = result.records
-
-      # Rails.logger.info "Solr Response: #{result.records}"
-
-      @properties[:products] = products
-      @properties[:suggest] = nil
+      
       begin
-        if suggest = result.suggest
-          suggest.sub!(/\sAND.*/, '')
-          @properties[:suggest] = suggest if suggest != query
+        result = Spree::Product.find_by_solr(full_query, search_options)
+
+        products = result.records
+
+        # Rails.logger.info "Solr Response: #{result.records}"
+
+        @properties[:products] = products
+        @properties[:suggest] = nil
+        begin
+          if suggest = result.suggest
+            suggest.sub!(/\sAND.*/, '')
+            @properties[:suggest] = suggest if suggest != query
+          end
+        rescue
         end
+
+        @properties[:available_facets] = parse_facets_hash(result.facets)
+        base_scope = base_scope.where(["spree_products.id IN (?)", products.map(&:id)])
       rescue
       end
-
-      @properties[:available_facets] = parse_facets_hash(result.facets)
-      base_scope.where(["spree_products.id IN (?)", products.map(&:id)])
+      
+      base_scope
     end
 
     def prepare(params)
