@@ -52,7 +52,7 @@ Spree::Product.class_eval do
   end
   
   def brand_property
-    get_property_value('brand')
+    property('brand')
   end
 
   def color_option
@@ -75,11 +75,4 @@ Spree::Product.class_eval do
     eos
     Spree::OptionValue.find_by_sql(sql).map(&:presentation)     
   end
-
-  def get_property_value(property_name)
-    pp = Spree::ProductProperty.first(:joins => :property, 
-          :conditions => {:product_id => self.id, :spree_properties => {:name => property_name}})
-    pp ? pp.value : ''
-  end
-
 end
